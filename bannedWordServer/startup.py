@@ -15,6 +15,8 @@ def start_session():
 
 app = Flask(__name__)
 
+def request_wrapper(session, request_func):
+
 
 @app.route('/v1/server')
 def servers():
@@ -23,11 +25,33 @@ def servers():
 
 	return result
 
-@app.route('/v1/server/<serverid>')
+@app.route('/v1/server/<serverid>', methods=['GET', 'POST'])
 def server(serverid):
 	session = start_session()
-	result = ServerRoute().get_one(session, serverid)
+	
+	if request.method == 'POST':
+		try:
+		    result = ServerRoute().post(session, serverid)
+		    session.commit()
+		    return result
+		except:
+		    session.rollback()
+		    raise
+		finally:
+		    session.close()
+	if request.method == 'PUT':
+		try:
+		    result = ServerRoute().put(session, serverid, request.json)
+		    session.commit()
+		    return result
+		except:
+		    session.rollback()
+		    raise
+		finally:
+		    session.close()
 
+	
+	result = ServerRoute().get_one(session, serverid)
 	return result
 
-app.run()
+#app.run()

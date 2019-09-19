@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Boolean, Integer
+from sqlalchemy import Column, Boolean, Integer, String
 from sqlalchemy.orm import relationship
 
 from models import Base
@@ -7,8 +7,10 @@ class Server(Base):
 	__tablename__ = 'server'
 
 	server_id = Column(Integer, primary_key=True)
-	awake = Column(Boolean)
-	timeout_duration_seconds = Column(Integer, nullable=False)
+	awake = Column(Boolean, default=True)
+	timeout_duration_seconds = Column(Integer, nullable=False, default=1800)
+	infracted_at = Column(String, nullable=False, default="-1")
+	calledout_at = Column(String, nullable=False, default="-1")
 	banned_words = relationship("Ban")
 
 	def to_dict(self):

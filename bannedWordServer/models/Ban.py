@@ -9,8 +9,8 @@ class Ban(Base):
 	rowid = Column(Integer, primary_key=True)
 	banned_word = Column(String, nullable=False, default='defaultbannedword')
 	server_id = Column(Integer, ForeignKey('server.server_id'), nullable=False)
-	infracted_at = Column(String, nullable=False, default=datetime.now())
-	calledout_at = Column(String, nullable=False, default=datetime.now() - timedelta(seconds=1800))
+	infracted_at = Column(String, nullable=False, default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+	calledout_at = Column(String, nullable=False, default=(datetime.now() - timedelta(weeks=52)).strftime("%Y-%m-%d %H:%M:%S"))
 
 	def to_dict(self):
 		entries = {}

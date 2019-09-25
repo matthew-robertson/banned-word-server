@@ -1,1 +1,1 @@
-DB_LOCATION = ''
+DB_LOCATION = 'vt.db'

@@ -37,6 +37,7 @@ def servers():
 
 @app.route('/v1/servers/<serverid>', methods=['GET', 'POST'])
 def server(serverid):
+	serverid = int(serverid)
 	session = start_session()
 	result = None
 	if request.method == 'POST':
@@ -55,6 +56,7 @@ def server(serverid):
 
 @app.route('/v1/servers/<serverid>/bans', methods=['GET', 'POST'])
 def bans(serverid):
+	serverid = int(serverid)
 	session = start_session()
 	result = None
 	if request.method == 'POST':
@@ -72,6 +74,8 @@ def bans(serverid):
 
 @app.route('/v1/servers/<serverid>/bans/<banid>', methods=['GET', 'POST'])
 def ban(serverid, banid):
+	serverid = int(serverid)
+	banid = int(banid)
 	session = start_session()
 	result = None
 	if request.method == 'POST':

@@ -2,12 +2,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from flask import Flask, jsonify, request
 
-import config
-from models.ban import Ban
-from models.server import Server
-from routes.banroute import BanRoute
-from routes.messageroute import MessageRoute
-from routes.serverroute import ServerRoute
+import .config
+from bannedWordServer.models.ban import Ban
+from bannedWordServer.models.server import Server
+from bannedWordServer.routes.banroute import BanRoute
+from bannedWordServer.routes.messageroute import MessageRoute
+from bannedWordServer.routes.serverroute import ServerRoute
 
 _engine = create_engine('sqlite:///'+config.DB_LOCATION, echo=False)
 _Session = sessionmaker(bind=_engine)
@@ -31,7 +31,7 @@ def servers():
 		finally:
 		    session.close()
 	elif request.method == 'GET':
-		result = ServerRoute().get_collection(session)
+		result = jsonify(ServerRoute().get_collection(session))
 
 	return result
 
@@ -69,7 +69,7 @@ def bans(serverid):
 		finally:
 			session.close()
 	elif request.method == 'GET':
-		result = BanRoute().get_collection(session, serverid)
+		result = jsonify(BanRoute().get_collection(session, serverid))
 	return result
 
 @app.route('/v1/servers/<serverid>/bans/<banid>', methods=['GET', 'POST'])

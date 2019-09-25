@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Boolean, Integer, String
 from sqlalchemy.orm import relationship
 
-from models import Base
+from bannedWordServer.models import Base
 
 class Server(Base):
 	__tablename__ = 'server'

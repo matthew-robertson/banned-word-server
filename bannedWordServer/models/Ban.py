@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from datetime import datetime, timedelta
 
-from models import Base
+from bannedWordServer.models import Base
 
 class Ban(Base):
 	__tablename__ = 'server_banned_word'

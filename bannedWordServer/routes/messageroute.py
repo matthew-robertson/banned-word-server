@@ -1,8 +1,6 @@
-from flask import jsonify
-
-from models.ban import Ban
-from routes.resource import Resource
-from constants.errors import NotFoundError
+from bannedWordServer.models.ban import Ban
+from bannedWordServer.routes.resource import Resource
+from bannedWordServer.constants.errors import NotFoundError
 
 class MessageRoute(Resource):
 	def get_collection(self, session, id):

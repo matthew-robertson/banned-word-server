@@ -1,16 +1,14 @@
-from flask import jsonify
-
-from models.server import Server
-from models.ban import Ban
-from routes.resource import Resource
-from constants.errors import NotFoundError, InvalidTypeError
+from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError
+from bannedWordServer.models.server import Server
+from bannedWordServer.models.ban import Ban
+from bannedWordServer.routes.resource import Resource
 
 class ServerRoute(Resource):
 	def get_collection(self, session):
 		result = session.query(Server).all()
 		result = [row.to_dict() for row in result]
 
-		return jsonify(result)
+		return result
 
 	def get_one(self, session, serverid: int) -> dict:
 		if not isinstance(serverid, int): raise InvalidTypeError

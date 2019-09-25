@@ -1,16 +1,15 @@
-from flask import jsonify
 from datetime import datetime, timedelta
 
-from models.ban import Ban
-from routes.resource import Resource
-from constants.errors import NotFoundError, InvalidTypeError
+from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError
+from bannedWordServer.models.ban import Ban
+from bannedWordServer.routes.resource import Resource
 
 class BanRoute(Resource):
 	def get_collection(self, session, serverid: int) -> dict:
 		result = session.query(Ban).filter_by(server_id=serverid).all()
 		result = [row.to_dict() for row in result]
 
-		return jsonify(result)
+		return result
 
 	def get_one(self, session, banid: int) -> dict:
 		result = session.query(Ban).filter_by(rowid=banid).first()

@@ -6,3 +6,6 @@ class NotFoundError(ValidationError):
 
 class InvalidTypeError(ValidationError):
 	pass
+
+class DuplicateResourceError(Exception):
+	pass

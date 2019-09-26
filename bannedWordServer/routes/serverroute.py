@@ -1,4 +1,4 @@
-from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError
+from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError
 from bannedWordServer.models.server import Server
 from bannedWordServer.models.ban import Ban
 from bannedWordServer.routes.resource import Resource
@@ -20,11 +20,14 @@ class ServerRoute(Resource):
 
 	def post_collection(self, session, serverid: int) -> dict:
 		if not isinstance(serverid, int): raise InvalidTypeError
+		already_exists = session.query(Server).filter_by(server_id=serverid).first()
+		if already_exists:
+			raise DuplicateResourceError
 
 		default_ban = Ban(server_id=serverid)
 		new_server = Server(server_id=serverid, banned_words=[default_ban])
 		session.add(new_server)
-		return new_server.to_dict()
+		return self.get_one(session, serverid)
 
 	def partial_update(self, session, serverid: int, modified_params: dict) -> dict:
 		if not isinstance(serverid, int): raise InvalidTypeError
@@ -53,7 +56,7 @@ class ServerRoute(Resource):
 			ban_to_modify.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 			ban_to_modify.calledout_at = (datetime.now() - timedelta(seconds=server_to_modify.timeout_duration_seconds)).strftime("%Y-%m-%d %H:%M:%S")
 
-		return server_to_modify.to_dict()
+		return self.get_one(session, serverid).to_dict()
 
 	def delete(self, session, serverid):
 		pass

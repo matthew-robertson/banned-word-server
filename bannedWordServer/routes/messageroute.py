@@ -18,4 +18,4 @@ class MessageRoute(Resource):
 		if (requestJson['called_out']):
 			ban_to_modify.calledout_at = requestJson['sent_time']
 
-		return ban_to_modify.to_dict()
+		return session.query(Ban).filter(rowid=banid).first().to_dict()

@@ -21,10 +21,9 @@ class BanRoute(Resource):
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
 
-		default_ban = Ban(server_id=serverid)
 		new_ban = Ban(server_id=serverid, banned_word=banned_word)
 		session.add(new_ban)
-		return new_ban.to_dict()
+		return session.query(Ban).filter_by(server_id=serverid, banned_word=banned_word).first().to_dict()
 
 	def post_one(self, session, banid: int, banned_word: str) -> dict:
 		if not isinstance(banned_word, str) or not isinstance(banid, int): raise InvalidTypeError
@@ -34,7 +33,7 @@ class BanRoute(Resource):
 		ban.banned_word = banned_word
 		ban.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 		ban.calledout_at = (datetime.now() - timedelta(weeks=52)).strftime("%Y-%m-%d %H:%M:%S")
-		return ban.to_dict()
+		return self.get_one(session, banid)
 
 	def delete(self, session, serverid):
 		pass

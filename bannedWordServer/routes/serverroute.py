@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError
 from bannedWordServer.models.server import Server
 from bannedWordServer.models.ban import Ban
@@ -56,7 +58,7 @@ class ServerRoute(Resource):
 			ban_to_modify.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 			ban_to_modify.calledout_at = (datetime.now() - timedelta(seconds=server_to_modify.timeout_duration_seconds)).strftime("%Y-%m-%d %H:%M:%S")
 
-		return self.get_one(session, serverid).to_dict()
+		return self.get_one(session, serverid)
 
 	def delete(self, session, serverid):
 		pass

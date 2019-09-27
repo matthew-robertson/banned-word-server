@@ -1,28 +1,38 @@
 from datetime import datetime, timedelta
 
-from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError
+from bannedWordServer.constants.errors import DuplicateResourceError, NotFoundError, InvalidTypeError
 from bannedWordServer.models.ban import Ban
+from bannedWordServer.models.server import Server
 from bannedWordServer.routes.resource import Resource
 
 class BanRoute(Resource):
 	def get_collection(self, session, serverid: int) -> dict:
+		if not isinstance(serverid, int): raise InvalidTypeError
+		relevant_server = session.query(Server).filter_by(server_id=serverid).first()
+		if not relevant_server: raise NotFoundError
+
 		result = session.query(Ban).filter_by(server_id=serverid).all()
 		result = [row.to_dict() for row in result]
-
 		return result
 
 	def get_one(self, session, banid: int) -> dict:
+		if not isinstance(banid, int): raise InvalidTypeError
 		result = session.query(Ban).filter_by(rowid=banid).first()
 		if not result:
 			raise NotFoundError
-		result = result.to_dict()
+		return result.to_dict()
 
 	def post_collection(self, session, serverid: int, banned_word: str) -> dict:
+		if not isinstance(banned_word, str) or not isinstance(serverid, int): raise InvalidTypeError
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
 
+		already_exists = session.query(Ban).filter_by(server_id=serverid, banned_word=banned_word).first()
+		if already_exists: raise DuplicateResourceError
+
 		new_ban = Ban(server_id=serverid, banned_word=banned_word)
 		session.add(new_ban)
+
 		return session.query(Ban).filter_by(server_id=serverid, banned_word=banned_word).first().to_dict()
 
 	def post_one(self, session, banid: int, banned_word: str) -> dict:

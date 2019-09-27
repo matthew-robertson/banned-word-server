@@ -46,18 +46,6 @@ class ServerRoute(Resource):
 			if not isinstance(timeout_duration_seconds, int): raise InvalidTypeError
 			server_to_modify.timeout_duration_seconds = timeout_duration_seconds
 
-		if 'banned_word' in modified_params.keys():
-			index: int = modified_params['banned_word']['index']
-			new_word: str = modified_params['banned_word']['word']
-
-			if not isinstance(index, int): raise InvalidTypeError
-			if not isinstance(new_word, str): raise InvalidTypeError
-
-			ban_to_modify = server_to_modify.banned_words[index]
-			ban_to_modify.banned_word = new_word
-			ban_to_modify.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-			ban_to_modify.calledout_at = (datetime.now() - timedelta(seconds=server_to_modify.timeout_duration_seconds)).strftime("%Y-%m-%d %H:%M:%S")
-
 		return self.get_one(session, serverid)
 
 	def delete(self, session, serverid):

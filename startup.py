@@ -1,21 +1,23 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 
-import .config
+from bannedWordServer.config import DB_LOCATION
 from bannedWordServer.models.ban import Ban
 from bannedWordServer.models.server import Server
 from bannedWordServer.routes.banroute import BanRoute
 from bannedWordServer.routes.messageroute import MessageRoute
 from bannedWordServer.routes.serverroute import ServerRoute
 
-_engine = create_engine('sqlite:///'+config.DB_LOCATION, echo=False)
+_engine = create_engine('sqlite:///'+DB_LOCATION, echo=False)
 _Session = sessionmaker(bind=_engine)
 
 def start_session():
 	return _Session()
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/v1/servers', methods=['GET', 'POST'])
 def servers():

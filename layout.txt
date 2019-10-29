@@ -1,0 +1,44 @@
+Resources:
+
+	Server:
+		server_id: 1234567890
+		awake: true
+		timeout_duration_seconds: 1800
+		banned_words: ban[]
+
+	Ban:
+		row_id: 1
+		banned_word: "bepis"
+		calledout_at: "21:34, 5/6/7890"
+		infracted_at: "21:34, 5/6/7890"
+
+	Message:
+		msg_author: 0987654321
+		infringing_word: "bepis" (maybe this should be a ban object?)
+		sent_time: "21:34, 5/6/7890",
+		calledout: True 
+
+
+Endpoints:
+
+	/v1/server:
+		get: get all servers
+		post: add a new server with default values (provide {server_id})
+
+	/v1/server/<id>:
+		get: get a specific server
+		post: partially update the server resource (provide, optionally {awake, default_timeout_setting, etc..})
+
+
+	/v1/server/<id>/ban:
+		get: get all banned words for the server
+		post: Add a new banned word to the server (provide {server_id, banned_word})
+
+	/v1/server/<id>/ban/<bid>:
+		get: get a specific banned word from the server
+		post: change the banned word string for this instance (provide {banned_word}) (deprecated)
+		delete: Remove the specified word from the server
+
+	/v1/server/<id>/message:
+	(or just /v1/message, not sure on heirarchy?)
+		post: provide an infringing message used to update the ban's timestamps

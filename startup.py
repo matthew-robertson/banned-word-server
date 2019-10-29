@@ -25,7 +25,7 @@ def servers():
 	result = None
 	if request.method == 'POST':
 		try:
-		    result = ServerRoute().post_collection(session, request.json['server_id'])
+		    result = ServerRoute().post_collection(session, int(request.json['server_id']))
 		    session.commit()
 		except:
 		    session.rollback()

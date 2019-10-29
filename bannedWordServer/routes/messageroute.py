@@ -15,7 +15,7 @@ class MessageRoute(Resource):
 		pass
 
 	def post(self, session, requestJson) -> dict:
-		banid = requestJson['ban_id']
+		banid = int(requestJson['ban_id'])
 		if not isinstance(banid, int): raise InvalidTypeError
 		ban_to_modify = session.query(Ban).filter_by(rowid=banid).first()
 		if not ban_to_modify: raise NotFoundError

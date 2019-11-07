@@ -1,8 +1,9 @@
 import re
 
+from bannedWordServer.auth import authenticateBotOnly
 from bannedWordServer.models.ban import Ban
 from bannedWordServer.routes.resource import Resource
-from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, ValidationError
+from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, ValidationError, AuthenticationError
 
 class MessageRoute(Resource):
 	def __init__(self):
@@ -14,9 +15,13 @@ class MessageRoute(Resource):
 	def get_one(self, session, id):
 		pass
 
-	def post(self, session, requestJson) -> dict:
-		banid = int(requestJson['ban_id'])
-		if not isinstance(banid, int): raise InvalidTypeError
+	def post(self, session, authToken, requestJson) -> dict:
+		if not authenticateBotOnly(authToken): raise AuthenticationError
+		try:
+			banid = int(requestJson['ban_id'])
+		except:
+			raise InvalidTypeError
+
 		ban_to_modify = session.query(Ban).filter_by(rowid=banid).first()
 		if not ban_to_modify: raise NotFoundError
 

@@ -1,1 +1,2 @@
-DB_LOCATION = 'vt.db'
+DB_LOCATION = ''
+BOT_TOKEN = ''

@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
-from bannedWordServer.config import DB_LOCATION
+from bannedWordServer.config import DB_LOCATION, SECRET_KEY
 from bannedWordServer.models.ban import Ban
 from bannedWordServer.models.server import Server
 from bannedWordServer.routes.banroute import BanRoute
@@ -14,6 +14,7 @@ _engine = create_engine('sqlite:///'+DB_LOCATION, echo=False)
 _Session = sessionmaker(bind=_engine)
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = SECRET_KEY
 CORS(app)
 def start_session():
 	return _Session()
@@ -107,4 +108,4 @@ def message():
 		session.close()
 	return result
 
-app.run()
+#app.run()

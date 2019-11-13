@@ -14,18 +14,24 @@ class ServerRoute(Resource):
 
 		return result
 
-	def get_one(self, session, authToken, serverid: int) -> dict:
+	def get_one(self, session, authToken, serverid: str) -> dict:
 		if not authenticateBotOnly(authToken): raise AuthenticationError
-		if not isinstance(serverid, int): raise InvalidTypeError
+		try:
+			serverid = int(serverid)
+		except:
+			raise InvalidTypeError
 
 		result = session.query(Server).filter_by(server_id=serverid).first()
 		if not result:
 			raise NotFoundError
 		return result.to_dict()
 
-	def post_collection(self, session, authToken, serverid: int) -> dict:
+	def post_collection(self, session, authToken, serverid: str) -> dict:
 		if not authenticateBotOnly(authToken): raise AuthenticationError
-		if not isinstance(serverid, int): raise InvalidTypeError
+		try:
+			serverid = int(serverid)
+		except:
+			raise InvalidTypeError
 		already_exists = session.query(Server).filter_by(server_id=serverid).first()
 		if already_exists:
 			raise DuplicateResourceError
@@ -35,9 +41,13 @@ class ServerRoute(Resource):
 		session.add(new_server)
 		return self.get_one(session, authToken, serverid)
 
-	def partial_update(self, session, authToken, serverid: int, modified_params: dict) -> dict:
+	def partial_update(self, session, authToken, serverid: str, modified_params: dict) -> dict:
 		if not authenticateBotOnly(authToken): raise AuthenticationError
-		if not isinstance(serverid, int): raise InvalidTypeError
+		try:
+			serverid = int(serverid)
+		except:
+			raise InvalidTypeError
+
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
 

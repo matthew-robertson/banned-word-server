@@ -20,8 +20,8 @@ class TestBanRouteGetCollection(TestCase):
 		self.trans = self.connection.begin()
 		self.session = Session(bind=self.connection)
 
-		self.serverid = 1234
-		new_server = Server(server_id=self.serverid)
+		self.serverid = "1234"
+		new_server = Server(server_id=int(self.serverid))
 		self.session.add(new_server)
 
 	def test_banroute_get_collection__bad_serverid(self):
@@ -39,7 +39,7 @@ class TestBanRouteGetCollection(TestCase):
 
 	def test_banroute_get_collection__one_element(self):
 		banned_word = "asdf"
-		ban = Ban(server_id=self.serverid, banned_word=banned_word)
+		ban = Ban(server_id=int(self.serverid), banned_word=banned_word)
 		self.session.add(ban)
 
 		result = BanRoute().get_collection(self.session, "Bot " + BOT_TOKEN, self.serverid)
@@ -49,8 +49,8 @@ class TestBanRouteGetCollection(TestCase):
 	def test_banroute_get_collection__multiple_elements(self):
 		b1w = "asdf"
 		b2w = "qwerty"
-		ban1 = Ban(server_id=self.serverid, banned_word=b1w)
-		ban2 = Ban(server_id=self.serverid, banned_word=b2w)
+		ban1 = Ban(server_id=int(self.serverid), banned_word=b1w)
+		ban2 = Ban(server_id=int(self.serverid), banned_word=b2w)
 		self.session.add(ban1)
 		self.session.add(ban2)
 
@@ -70,16 +70,15 @@ class TestBanRouteGetCollection(TestCase):
 		self.connection = engine.connect()
 		self.trans = self.connection.begin()
 		self.session = Session(bind=self.connection)
-		self.serverid = 1234
 
 	def test_banroute_get_one__bad_serverid(self):
 		self.assertRaises(InvalidTypeError, BanRoute().get_one, self.session, "Bot " + BOT_TOKEN, "asdf")
 
 	def test_banroute_get_one__not_found(self):
-		self.assertRaises(NotFoundError, BanRoute().get_one, self.session, "Bot " + BOT_TOKEN, 0)
+		self.assertRaises(NotFoundError, BanRoute().get_one, self.session, "Bot " + BOT_TOKEN, "0")
 
 	def test_banroute_get_one__unauthorized(self):
-		self.assertRaises(AuthenticationError, BanRoute().get_one, self.session, "Bot " + "asdffdsa", 0)
+		self.assertRaises(AuthenticationError, BanRoute().get_one, self.session, "Bot " + "asdffdsa", "0")
 
 	def test_banroute_get_one__good_request(self):
 		b1 = Ban(server_id=1, banned_word="asdf")
@@ -87,7 +86,7 @@ class TestBanRouteGetCollection(TestCase):
 		self.session.add(b1)
 		self.session.add(b2)
 
-		result = BanRoute().get_one(self.session, "Bot " + BOT_TOKEN, 2)
+		result = BanRoute().get_one(self.session, "Bot " + BOT_TOKEN, "2")
 		self.assertEqual(b2.banned_word, result['banned_word'])
 
 	def tearDown(self):
@@ -101,8 +100,8 @@ class TestBanRoutePostCollection(TestCase):
 		self.connection = engine.connect()
 		self.trans = self.connection.begin()
 		self.session = Session(bind=self.connection)
-		self.serverid = 1234
-		new_server = Server(server_id=self.serverid)
+		self.serverid = "1234"
+		new_server = Server(server_id=int(self.serverid))
 		self.session.add(new_server)
 
 	def test_banroute_post_collection__good_request(self):
@@ -112,10 +111,10 @@ class TestBanRoutePostCollection(TestCase):
 		self.assertEqual(result,db_result.to_dict())
 
 	def test_banroute_post_collection__server_not_found(self):
-		self.assertRaises(NotFoundError, BanRoute().post_collection, self.session, "Bot " + BOT_TOKEN, self.serverid+1, "asdf")
+		self.assertRaises(NotFoundError, BanRoute().post_collection, self.session, "Bot " + BOT_TOKEN, "4321", "asdf")
 
 	def test_banroute_post_collection__unauthorized(self):
-		self.assertRaises(AuthenticationError, BanRoute().post_collection, self.session, "Bot " + "asdffdsa", self.serverid+1, "asdf")
+		self.assertRaises(AuthenticationError, BanRoute().post_collection, self.session, "Bot " + "asdffdsa", self.serverid, "asdf")
 
 	def test_banroute_post_collection__duplicate_word(self):
 		banned_word = "asdf"

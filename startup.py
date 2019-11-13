@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 from bannedWordServer.config import DB_LOCATION, SECRET_KEY
+from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, ValidationError, AuthenticationError
 from bannedWordServer.models.ban import Ban
 from bannedWordServer.models.server import Server
 from bannedWordServer.routes.banroute import BanRoute
@@ -19,6 +20,15 @@ CORS(app)
 def start_session():
 	return _Session()
 
+
+@app.errorhandler(AuthenticationError)
+@app.errorhandler(ValidationError)
+@app.errorhandler(InvalidTypeError)
+@app.errorhandler(NotFoundError)
+def handle_error(error):
+	response = jsonify()
+	response.status_code = error.status_code
+	return response
 
 @app.route('/v1/servers', methods=['GET', 'POST'])
 def servers():
@@ -40,7 +50,6 @@ def servers():
 
 @app.route('/v1/servers/<serverid>', methods=['GET', 'POST'])
 def server(serverid):
-	serverid = int(serverid)
 	session = start_session()
 	result = None
 	if request.method == 'POST':
@@ -59,7 +68,6 @@ def server(serverid):
 
 @app.route('/v1/servers/<serverid>/bans', methods=['GET', 'POST'])
 def bans(serverid):
-	serverid = int(serverid)
 	session = start_session()
 	result = None
 	if request.method == 'POST':
@@ -77,8 +85,6 @@ def bans(serverid):
 
 @app.route('/v1/servers/<serverid>/bans/<banid>', methods=['GET', 'POST'])
 def ban(serverid, banid):
-	serverid = int(serverid)
-	banid = int(banid)
 	session = start_session()
 	result = None
 	if request.method == 'POST':

@@ -1,14 +1,17 @@
 class ValidationError(Exception):
-	pass
+	status_code = 400
 
 class AuthenticationError(Exception):
-	pass
+	status_code = 401
+
 
 class NotFoundError(ValidationError):
-	pass
+	status_code = 404
+
 
 class InvalidTypeError(ValidationError):
-	pass
+	status_code = 400
+
 
 class DuplicateResourceError(Exception):
-	pass
+	status_code = 403

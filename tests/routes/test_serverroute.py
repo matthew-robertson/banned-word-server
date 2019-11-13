@@ -64,7 +64,7 @@ class TestServerRouteGetOne(TestCase):
 		server2 = Server(server_id=4321)
 		self.session.add(server1)
 		self.session.add(server2)
-		result = ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, serverid)
+		result = ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, str(serverid))
 		self.assertEqual(result, server1.to_dict())
 
 	def test_serverroute_get_one__unauthorized(self):
@@ -73,13 +73,13 @@ class TestServerRouteGetOne(TestCase):
 		server2 = Server(server_id=4321)
 		self.session.add(server1)
 		self.session.add(server2)
-		self.assertRaises(AuthenticationError, ServerRoute().get_one, self.session, "Bot " + "asdffdsa", serverid)
+		self.assertRaises(AuthenticationError, ServerRoute().get_one, self.session, "Bot " + "asdffdsa", str(serverid))
 
 	def test_serverroute_get_one__not_found(self):
 		serverid=1234
 		server = Server(server_id=4321)
 		self.session.add(server)
-		self.assertRaises(NotFoundError, ServerRoute().get_one, self.session, "Bot " + BOT_TOKEN, serverid)
+		self.assertRaises(NotFoundError, ServerRoute().get_one, self.session, "Bot " + BOT_TOKEN, str(serverid))
 
 	def test_serverroute_get_one__bad_input(self):
 		serverid=1234
@@ -101,26 +101,26 @@ class TestServerRoutePostCollection(TestCase):
 
 	def test_serverroute_post_collection__good_request(self):
 		serverid=1234
-		result = ServerRoute().post_collection(self.session, "Bot " + BOT_TOKEN, serverid)
-		self.assertEqual(result, ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, serverid))
+		result = ServerRoute().post_collection(self.session, "Bot " + BOT_TOKEN, str(serverid))
+		self.assertEqual(result, ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, str(serverid)))
 
 	def test_serverroute_post_collection__duplicate_request(self):
 		serverid=1234
-		result = ServerRoute().post_collection(self.session, "Bot " + BOT_TOKEN, serverid)
-		self.assertEqual(result, ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, serverid))
-		self.assertRaises(DuplicateResourceError, ServerRoute().post_collection, self.session, "Bot " + BOT_TOKEN, serverid)
+		result = ServerRoute().post_collection(self.session, "Bot " + BOT_TOKEN, str(serverid))
+		self.assertEqual(result, ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, str(serverid)))
+		self.assertRaises(DuplicateResourceError, ServerRoute().post_collection, self.session, "Bot " + BOT_TOKEN, str(serverid))
 	
 	def test_serverroute_post_collection__duplicate_request(self):
 		serverid=1234
-		self.assertRaises(AuthenticationError, ServerRoute().post_collection, self.session, "Bot " + "asdffdsa", serverid)
+		self.assertRaises(AuthenticationError, ServerRoute().post_collection, self.session, "Bot " + "asdffdsa", str(serverid))
 
 	def test_serverroute_post_collection__bad_id_string_request(self):
 		serverid="asdf"
-		self.assertRaises(InvalidTypeError, ServerRoute().post_collection, self.session, "Bot " + BOT_TOKEN, serverid)
+		self.assertRaises(InvalidTypeError, ServerRoute().post_collection, self.session, "Bot " + BOT_TOKEN, str(serverid))
 
 	def test_serverroute_post_collection__bad_id_float_request(self):
 		serverid=1.23
-		self.assertRaises(InvalidTypeError, ServerRoute().post_collection, self.session, "Bot " + BOT_TOKEN, serverid)
+		self.assertRaises(InvalidTypeError, ServerRoute().post_collection, self.session, "Bot " + BOT_TOKEN, str(serverid))
 
 	def tearDown(self):
 		self.session.close()
@@ -134,9 +134,9 @@ class TestServerRoutePartialUpdate(TestCase):
 		self.trans = self.connection.begin()
 		self.session = Session(bind=self.connection)
 
-		self.serverid = 1234
-		default_ban = Ban(server_id=self.serverid)
-		new_server = Server(server_id=self.serverid, banned_words=[default_ban])
+		self.serverid = "1234"
+		default_ban = Ban(server_id=int(self.serverid))
+		new_server = Server(server_id=int(self.serverid), banned_words=[default_ban])
 		self.session.add(new_server)
 
 	def test_serverroute_partial_update__update_awake(self):

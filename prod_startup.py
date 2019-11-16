@@ -1,4 +1,4 @@
 from waitress import serve
-import startup
+from bannedWordServer.router import app
 
-serve(startup.app)
+serve(app)

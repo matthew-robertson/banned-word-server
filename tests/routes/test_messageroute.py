@@ -5,7 +5,7 @@ from unittest import TestCase
 
 from bannedWordServer.config import BOT_TOKEN
 from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, ValidationError, AuthenticationError
-from bannedWordServer.models import Base
+from bannedWordServer import db
 from bannedWordServer.models.server import Server
 from bannedWordServer.models.ban import Ban
 from bannedWordServer.routes.messageroute import MessageRoute
@@ -15,7 +15,7 @@ engine = create_engine('sqlite:///:memory:')
 
 class TestBanRoutePostOne(TestCase):
 	def setUp(self):
-		Base.metadata.create_all(engine)
+		db.Model.metadata.create_all(engine)
 		self.connection = engine.connect()
 		self.trans = self.connection.begin()
 		self.session = Session(bind=self.connection)

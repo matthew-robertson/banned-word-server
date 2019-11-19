@@ -1,17 +1,14 @@
-from sqlalchemy import Column, Boolean, Integer, String
-from sqlalchemy.orm import relationship
+from bannedWordServer import db
 
-from bannedWordServer.models import Base
-
-class Server(Base):
+class Server(db.Model):
 	__tablename__ = 'server'
 
-	server_id = Column(Integer, primary_key=True)
-	awake = Column(Boolean, default=True)
-	timeout_duration_seconds = Column(Integer, nullable=False, default=1800)
-	infracted_at = Column(String, nullable=False, default="-1")
-	calledout_at = Column(String, nullable=False, default="-1")
-	banned_words = relationship("Ban")
+	server_id = db.Column(db.Integer, primary_key=True)
+	awake = db.Column(db.Boolean, default=True)
+	timeout_duration_seconds = db.Column(db.Integer, nullable=False, default=1800)
+	infracted_at = db.Column(db.String, nullable=False, default="-1")
+	calledout_at = db.Column(db.String, nullable=False, default="-1")
+	banned_words = db.relationship("Ban")
 
 	def to_dict(self):
 		entries = {}

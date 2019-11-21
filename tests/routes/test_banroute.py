@@ -168,3 +168,40 @@ class TestBanRoutePostOne(TestCase):
 		self.session.close()
 		self.trans.rollback()
 		self.connection.close()
+
+class TestBanRouteDelete(TestCase):
+	def setUp(self):
+		db.Model.metadata.create_all(engine)
+		self.connection = engine.connect()
+		self.trans = self.connection.begin()
+		self.session = Session(bind=self.connection)
+		self.serverid = 1234
+		new_ban1 = Ban(server_id=self.serverid, banned_word="asdf", infracted_at=(datetime.now()-timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"))
+		new_ban2 = Ban(server_id=self.serverid, banned_word="fdsa", infracted_at=(datetime.now()-timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"))
+		new_ban3 = Ban(server_id=self.serverid, banned_word="test", infracted_at=(datetime.now()-timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"))
+		new_server = Server(server_id=self.serverid, banned_words=[new_ban1, new_ban2, new_ban3])
+		self.session.add(new_server)
+
+	def test_banroute_delete__good_request(self):
+		banid = 1
+
+		BanRoute().delete(self.session, "Bot " + BOT_TOKEN, banid)
+		self.assertRaises(NotFoundError, BanRoute().get_one, self.session, "Bot " + BOT_TOKEN, banid)
+		server_words = self.session.query(Server).filter_by(server_id=self.serverid).first().banned_words
+		self.assertEqual(len(server_words), 2)
+
+	def test_banroute_delete__ban_not_found(self):
+		self.assertRaises(NotFoundError, BanRoute().delete, self.session, "Bot " + BOT_TOKEN, 5)
+
+	def test_banroute_delete__unauthorized(self):
+		self.assertRaises(AuthenticationError, BanRoute().delete, self.session, "Bot " + "asdffdsa", 1)
+
+	def test_banroute_delete__twice(self):
+		banid = 1
+		BanRoute().delete(self.session, "Bot " + BOT_TOKEN, banid)
+		self.assertRaises(NotFoundError, BanRoute().delete, self.session, "Bot " + BOT_TOKEN, banid)
+
+	def tearDown(self):
+		self.session.close()
+		self.trans.rollback()
+		self.connection.close()

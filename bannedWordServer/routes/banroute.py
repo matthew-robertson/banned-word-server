@@ -49,7 +49,7 @@ class BanRoute(Resource):
 
 		return session.query(Ban).filter_by(server_id=serverid, banned_word=banned_word).first().to_dict()
 
-	def post_one(self, session, authToken, banid: int, banned_word: str) -> dict:
+	def post_one(self, session, authToken, banid: str, banned_word: str) -> dict:
 		if not authenticateBotOnly(authToken): raise AuthenticationError
 		try:
 			banid = int(banid)
@@ -64,6 +64,13 @@ class BanRoute(Resource):
 		ban.calledout_at = (datetime.now() - timedelta(weeks=52)).strftime("%Y-%m-%d %H:%M:%S")
 		return self.get_one(session, authToken, banid)
 
-	def delete(self, session, authToken, serverid):
+	def delete(self, session, authToken, banid: str):
 		if not authenticateBotOnly(authToken): raise AuthenticationError
-		pass
+		try:
+			banid = int(banid)
+		except:
+			raise InvalidTypeError
+		ban = session.query(Ban).filter_by(rowid=banid).first()
+		if not ban:	raise NotFoundError
+		session.delete(ban)
+		

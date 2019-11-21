@@ -70,7 +70,7 @@ def bans(serverid):
 		result = jsonify(BanRoute().get_collection(session, request.headers['Authorization'], serverid))
 	return result
 
-@app.route('/v1/servers/<serverid>/bans/<banid>', methods=['GET', 'POST'])
+@app.route('/v1/servers/<serverid>/bans/<banid>', methods=['GET', 'POST', 'DELETE'])
 def ban(serverid, banid):
 	session = start_session()
 	result = None
@@ -85,6 +85,17 @@ def ban(serverid, banid):
 			session.close()
 	elif request.method == 'GET':
 		result = BanRoute().get_one(session, request.headers['Authorization'], banid)
+	elif request.method == 'DELETE':
+		try:
+			BanRoute().delete(session, request.headers['Authorization'], banid)
+			result = jsonify()
+			result.status_code = 204
+			session.commit()
+		except:
+			session.rollback()
+			raise
+		finally:
+			session.close()
 	return result
 
 @app.route('/v1/messages', methods=['POST'])

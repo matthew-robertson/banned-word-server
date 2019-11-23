@@ -130,6 +130,10 @@ class TestBanRoutePostCollection(TestCase):
 		BanRoute().post_collection(self.session, "Bot " + BOT_TOKEN, self.serverid, banned_word)
 		self.assertRaises(DuplicateResourceError, BanRoute().post_collection, self.session, self.authtoken, self.serverid, banned_word)
 
+	def test_banroute_post_collection__confusable_word(self):
+		BanRoute().post_collection(self.session, "Bot " + BOT_TOKEN, self.serverid, 'lest')
+		self.assertRaises(DuplicateResourceError, BanRoute().post_collection, self.session, self.authtoken, self.serverid, 'iest')
+
 	def test_banroute_post_collection__invalid_word(self):
 		banned_word = 1234
 		self.assertRaises(InvalidTypeError, BanRoute().post_collection, self.session, self.authtoken, self.serverid, banned_word)
@@ -166,6 +170,10 @@ class TestBanRoutePostOne(TestCase):
 
 	def test_banroute_post_one__ban_not_found(self):
 		self.assertRaises(NotFoundError, BanRoute().post_one, self.session, "Bot " + BOT_TOKEN, self.serverid, 5, "asdf")
+
+	def test_banroute_post_one__confusable_word(self):
+		BanRoute().post_collection(self.session, "Bot " + BOT_TOKEN, self.serverid, 'lest')
+		self.assertRaises(DuplicateResourceError, BanRoute().post_one, self.session, "Bot " + BOT_TOKEN, self.serverid, 1, "iest")
 
 	def test_banroute_post_one__unauthorized(self):
 		self.assertRaises(AuthenticationError, BanRoute().post_one, self.session, "Bot " + "asdffdsa", self.serverid, 5, "asdf")

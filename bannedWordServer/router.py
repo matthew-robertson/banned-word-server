@@ -1,7 +1,7 @@
 from flask import jsonify, request
 
 from bannedWordServer import app, db
-from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, ValidationError, AuthenticationError
+from bannedWordServer.constants.errors import NotFoundError, DuplicateResourceError, InvalidTypeError, ValidationError, AuthenticationError
 from bannedWordServer.models import Ban, Server
 from bannedWordServer.routes import BanRoute, MessageRoute, ServerRoute
 
@@ -11,6 +11,7 @@ def start_session():
 @app.errorhandler(AuthenticationError)
 @app.errorhandler(ValidationError)
 @app.errorhandler(InvalidTypeError)
+@app.errorhandler(DuplicateResourceError)
 @app.errorhandler(NotFoundError)
 def handle_error(error):
 	response = jsonify()

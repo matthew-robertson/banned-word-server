@@ -1,3 +1,4 @@
+from confusables import is_confusable
 from datetime import datetime, timedelta
 
 from bannedWordServer.constants.errors import ValidationError, DuplicateResourceError, NotFoundError, InvalidTypeError, AuthenticationError
@@ -43,7 +44,7 @@ class BanRoute(Resource):
 		if len(server_to_modify.banned_words) == 3:
 			raise ValidationError
 
-		already_exists = session.query(Ban).filter_by(server_id=serverid, banned_word=banned_word).first()
+		already_exists = any([is_confusable(banned_word, ban.banned_word) for ban in server_to_modify.banned_words])
 		if already_exists: raise DuplicateResourceError
 
 		new_ban = Ban(server_id=serverid,
@@ -66,6 +67,9 @@ class BanRoute(Resource):
 		if not server_to_modify: raise NotFoundError
 		ban = session.query(Ban).filter_by(server_id=serverid, rowid=banid).first()
 		if not ban:	raise NotFoundError
+
+		already_exists = any([is_confusable(banned_word, ban.banned_word) for ban in server_to_modify.banned_words])
+		if already_exists: raise DuplicateResourceError
 
 		ban.banned_word = banned_word
 		ban.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

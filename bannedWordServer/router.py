@@ -76,7 +76,7 @@ def ban(serverid, banid):
 	result = None
 	if request.method == 'POST':
 		try:
-			result = BanRoute().post_one(session, request.headers['Authorization'], banid, request.json['banned_word'])
+			result = BanRoute().post_one(session, request.headers['Authorization'], serverid, banid, request.json['banned_word'])
 			session.commit()
 		except:
 			session.rollback()
@@ -87,7 +87,7 @@ def ban(serverid, banid):
 		result = BanRoute().get_one(session, request.headers['Authorization'], banid)
 	elif request.method == 'DELETE':
 		try:
-			BanRoute().delete(session, request.headers['Authorization'], banid)
+			BanRoute().delete(session, request.headers['Authorization'], serverid, banid)
 			result = jsonify()
 			result.status_code = 204
 			session.commit()

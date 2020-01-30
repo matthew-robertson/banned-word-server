@@ -1,5 +1,8 @@
 from flask import jsonify, request
+import requests
+import json
 
+from bannedWordServer.config import DISCORD_BASE_URL, CLIENT_ID, BOT_TOKEN
 from bannedWordServer import app, db
 from bannedWordServer.constants.errors import NotFoundError, DuplicateResourceError, InvalidTypeError, ValidationError, AuthenticationError
 from bannedWordServer.models import Ban, Server
@@ -112,3 +115,25 @@ def message():
 	finally:
 		session.close()
 	return result
+
+@app.route('/v1/users/@me/guilds', methods=['GET'])
+def guilds():
+	auth_token = request.headers['Authorization']
+	result = requests.get(DISCORD_BASE_URL + 'users/@me/guilds',
+		headers = {'Authorization': auth_token})
+
+	servers = list(filter(lambda server: (server['permissions'] & 0x00000008) == 0x00000008, json.loads(result.content)))
+	servers = list(map(lambda server: map_server_to_bot(server), servers))
+
+	response = jsonify(servers)
+	response.status_code = result.status_code
+
+	return response
+
+
+def map_server_to_bot(server):
+	is_bot_member_req = requests.get(DISCORD_BASE_URL + 'guilds/{}/members/{}'.format(server['id'], CLIENT_ID),
+		headers = {'Authorization': BOT_TOKEN})
+	if not is_bot_member_req.ok:
+		server['invite_link'] = "https://discordapp.com/oauth2/authorize?&client_id={}&scope=bot&permissions=3072&guild_id={}".format(CLIENT_ID, server['id'])
+	return server

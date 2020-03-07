@@ -5,7 +5,7 @@ from bannedWordServer.constants.errors import ValidationError, DuplicateResource
 from bannedWordServer.models.ban import Ban
 from bannedWordServer.models.server import Server
 from bannedWordServer.routes.resource import Resource
-from bannedWordServer.auth import authenticateBotOnly
+from bannedWordServer.auth import authenticateBotOnly, authenticateBotOrServerAdmin
 
 class BanRoute(Resource):
 	def get_collection(self, session, authToken, serverid: int) -> dict:
@@ -33,11 +33,11 @@ class BanRoute(Resource):
 		return result.to_dict()
 
 	def post_collection(self, session, authToken, serverid: int, banned_word: str) -> dict:
-		if not authenticateBotOnly(authToken): raise AuthenticationError
 		try:
 			serverid = int(serverid)
 		except:
 			raise InvalidTypeError
+		if not authenticateBotOrServerAdmin(serverid, authToken): raise AuthenticationError
 		if not isinstance(banned_word, str): raise InvalidTypeError
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
@@ -56,12 +56,12 @@ class BanRoute(Resource):
 		return session.query(Ban).filter_by(server_id=serverid, banned_word=banned_word).first().to_dict()
 
 	def post_one(self, session, authToken, serverid: str, banid: str, banned_word: str) -> dict:
-		if not authenticateBotOnly(authToken): raise AuthenticationError
 		try:
 			serverid = int(serverid)
 			banid = int(banid)
 		except:
 			raise InvalidTypeError
+		if not authenticateBotOrServerAdmin(serverid, authToken): raise AuthenticationError
 		if not isinstance(banned_word, str): raise InvalidTypeError
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
@@ -77,12 +77,12 @@ class BanRoute(Resource):
 		return self.get_one(session, authToken, banid)
 
 	def delete(self, session, authToken, serverid: str, banid: str):
-		if not authenticateBotOnly(authToken): raise AuthenticationError
 		try:
 			banid = int(banid)
 			serverid = int(serverid)
 		except:
 			raise InvalidTypeError
+		if not authenticateBotOrServerAdmin(serverid, authToken): raise AuthenticationError
 
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError

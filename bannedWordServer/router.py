@@ -3,7 +3,7 @@ import requests
 import json
 
 from bannedWordServer.config import DISCORD_BASE_URL, CLIENT_ID, BOT_TOKEN
-from bannedWordServer.externalapi import getManageableDiscordServers
+from bannedWordServer.externalapi import getManageableDiscordServers, getDiscordUser
 from bannedWordServer import app, db
 from bannedWordServer.constants.errors import NotFoundError, DuplicateResourceError, InvalidTypeError, ValidationError, AuthenticationError
 from bannedWordServer.models import Ban, Server
@@ -117,14 +117,23 @@ def message():
 		session.close()
 	return result
 
+@app.route('/v1/users/@me', methods=['GET'])
+def user():
+	auth_token = request.headers['Authorization']
+	user, status_code = getDiscordUser(auth_token)
+	response = jsonify(user)
+	response.status_code = status_code
+
+	return response
+
 @app.route('/v1/users/@me/guilds', methods=['GET'])
 def guilds():
 	auth_token = request.headers['Authorization']
-	servers = getManageableDiscordServers(auth_token)
+	servers, status_code = getManageableDiscordServers(auth_token)
 	servers = list(map(lambda server: map_server_to_bot(server), servers))
 
 	response = jsonify(servers)
-	response.status_code = result.status_code
+	response.status_code = status_code
 
 	return response
 

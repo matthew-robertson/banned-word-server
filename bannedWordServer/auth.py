@@ -8,5 +8,5 @@ def authenticateBotOnly(auth_token):
 	return auth_token == BOT_TOKEN
 
 def authenticateServerAdminOnly(serverid, auth_token):
-	servers = getManageableDiscordServers(auth_token)	
+	servers, status_code = getManageableDiscordServers(auth_token)	
 	return any(int(server['id']) == int(serverid) for server in servers)

@@ -65,16 +65,16 @@ class BanRoute(Resource):
 		if not isinstance(banned_word, str): raise InvalidTypeError
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
-		ban = session.query(Ban).filter_by(server_id=serverid, rowid=banid).first()
-		if not ban:	raise NotFoundError
+		ban_to_edit = session.query(Ban).filter_by(server_id=serverid, rowid=banid).first()
+		if not ban_to_edit:	raise NotFoundError
 
 		already_exists = any([is_confusable(banned_word, ban.banned_word) for ban in server_to_modify.banned_words])
 		if already_exists: raise DuplicateResourceError
 
-		ban.banned_word = banned_word
-		ban.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-		ban.calledout_at = (datetime.now() - timedelta(weeks=52)).strftime("%Y-%m-%d %H:%M:%S")
-		return self.get_one(session, authToken, banid)
+		ban_to_edit.banned_word = banned_word
+		ban_to_edit.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		ban_to_edit.calledout_at = (datetime.now() - timedelta(weeks=52)).strftime("%Y-%m-%d %H:%M:%S")
+		return ban_to_edit.to_dict()
 
 	def delete(self, session, authToken, serverid: str, banid: str):
 		try:

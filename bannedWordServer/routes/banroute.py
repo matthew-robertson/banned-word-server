@@ -5,7 +5,7 @@ from bannedWordServer.constants.errors import ValidationError, DuplicateResource
 from bannedWordServer.models.ban import Ban
 from bannedWordServer.models.server import Server
 from bannedWordServer.routes.resource import Resource
-from bannedWordServer.auth import authenticateBotOnly
+from bannedWordServer.auth import authenticateBotOnly, authenticateBotOrServerAdmin
 
 class BanRoute(Resource):
 	def get_collection(self, session, authToken, serverid: int) -> dict:
@@ -33,11 +33,11 @@ class BanRoute(Resource):
 		return result.to_dict()
 
 	def post_collection(self, session, authToken, serverid: int, banned_word: str) -> dict:
-		if not authenticateBotOnly(authToken): raise AuthenticationError
 		try:
 			serverid = int(serverid)
 		except:
 			raise InvalidTypeError
+		if not authenticateBotOrServerAdmin(serverid, authToken): raise AuthenticationError
 		if not isinstance(banned_word, str): raise InvalidTypeError
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
@@ -56,33 +56,33 @@ class BanRoute(Resource):
 		return session.query(Ban).filter_by(server_id=serverid, banned_word=banned_word).first().to_dict()
 
 	def post_one(self, session, authToken, serverid: str, banid: str, banned_word: str) -> dict:
-		if not authenticateBotOnly(authToken): raise AuthenticationError
 		try:
 			serverid = int(serverid)
 			banid = int(banid)
 		except:
 			raise InvalidTypeError
+		if not authenticateBotOrServerAdmin(serverid, authToken): raise AuthenticationError
 		if not isinstance(banned_word, str): raise InvalidTypeError
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
-		ban = session.query(Ban).filter_by(server_id=serverid, rowid=banid).first()
-		if not ban:	raise NotFoundError
+		ban_to_edit = session.query(Ban).filter_by(server_id=serverid, rowid=banid).first()
+		if not ban_to_edit:	raise NotFoundError
 
 		already_exists = any([is_confusable(banned_word, ban.banned_word) for ban in server_to_modify.banned_words])
 		if already_exists: raise DuplicateResourceError
 
-		ban.banned_word = banned_word
-		ban.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-		ban.calledout_at = (datetime.now() - timedelta(weeks=52)).strftime("%Y-%m-%d %H:%M:%S")
-		return self.get_one(session, authToken, banid)
+		ban_to_edit.banned_word = banned_word
+		ban_to_edit.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+		ban_to_edit.calledout_at = (datetime.now() - timedelta(weeks=52)).strftime("%Y-%m-%d %H:%M:%S")
+		return ban_to_edit.to_dict()
 
 	def delete(self, session, authToken, serverid: str, banid: str):
-		if not authenticateBotOnly(authToken): raise AuthenticationError
 		try:
 			banid = int(banid)
 			serverid = int(serverid)
 		except:
 			raise InvalidTypeError
+		if not authenticateBotOrServerAdmin(serverid, authToken): raise AuthenticationError
 
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError

@@ -3,3 +3,5 @@ python:
 - '3.6'
 script:
 - python3 -m unittest discover
+env:
+- BOT_TOKEN=garbageToken SECRET_KEY="" DB_LOCATION="garbo"

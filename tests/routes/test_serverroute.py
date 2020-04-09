@@ -1,8 +1,9 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from unittest import TestCase
 
-from bannedWordServer.config import BOT_TOKEN
 from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError
 from bannedWordServer import db
 from bannedWordServer.models.server import Server
@@ -11,6 +12,7 @@ from bannedWordServer.routes.serverroute import ServerRoute
 
 Session = sessionmaker()
 engine = create_engine('sqlite:///:memory:')
+BOT_TOKEN = os.environ['BOT_TOKEN']
 
 class TestServerRouteGetCollection(TestCase):
 	def setUp(self):

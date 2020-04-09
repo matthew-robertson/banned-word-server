@@ -1,9 +1,10 @@
+import os
+
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from unittest import TestCase
 
-from bannedWordServer.config import BOT_TOKEN
 from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, ValidationError, AuthenticationError
 from bannedWordServer import db
 from bannedWordServer.models.server import Server
@@ -12,6 +13,7 @@ from bannedWordServer.routes.messageroute import MessageRoute
 
 Session = sessionmaker()
 engine = create_engine('sqlite:///:memory:')
+BOT_TOKEN = os.environ['BOT_TOKEN']
 
 class TestBanRoutePostOne(TestCase):
 	def setUp(self):

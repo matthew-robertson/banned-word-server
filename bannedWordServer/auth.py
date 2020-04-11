@@ -1,4 +1,4 @@
-from bannedWordServer.config import BOT_TOKEN
+import os
 
 def authenticateBotOnly(authToken):
-	return authToken == 'Bot ' + BOT_TOKEN
+	return authToken == 'Bot ' + os.environ['BOT_TOKEN']

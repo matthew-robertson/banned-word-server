@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from unittest import TestCase
 
-from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError
+from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError, ValidationError
 from bannedWordServer import db
 from bannedWordServer.models.server import Server
 from bannedWordServer.models.ban import Ban
@@ -157,6 +157,16 @@ class TestServerRoutePartialUpdate(TestCase):
 
 		ServerRoute().partial_update(self.session, "Bot " + BOT_TOKEN, self.serverid, update_params)
 		self.assertEqual(update_params['timeout_duration_seconds'],\
+						ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, self.serverid)['timeout_duration_seconds'])
+
+	def test_serverroute_partial_update__update_timeout_duration_too_long(self):
+		update_params = {'timeout_duration_seconds': 777777777777777}
+
+		self.assertNotEqual(update_params['timeout_duration_seconds'],\
+						ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, self.serverid)['timeout_duration_seconds'])
+
+		self.assertRaises(ValidationError, ServerRoute().partial_update, self.session, "Bot " + BOT_TOKEN, self.serverid, update_params)
+		self.assertNotEqual(update_params['timeout_duration_seconds'],\
 						ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, self.serverid)['timeout_duration_seconds'])
 
 	def test_serverroute_partial_update__update_all(self):

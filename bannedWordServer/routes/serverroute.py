@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from bannedWordServer.auth import authenticateBotOnly
-from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError
+from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError, ValidationError
 from bannedWordServer.models.server import Server
 from bannedWordServer.models.ban import Ban
 from bannedWordServer.routes.resource import Resource
@@ -59,6 +59,7 @@ class ServerRoute(Resource):
 		if 'timeout_duration_seconds' in modified_params.keys():
 			timeout_duration_seconds: int = modified_params['timeout_duration_seconds']
 			if not isinstance(timeout_duration_seconds, int): raise InvalidTypeError
+			if timeout_duration_seconds >= 100000000: raise ValidationError
 			server_to_modify.timeout_duration_seconds = timeout_duration_seconds
 
 		return self.get_one(session, authToken, serverid)

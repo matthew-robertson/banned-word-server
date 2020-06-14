@@ -6,8 +6,7 @@ from unittest import TestCase
 
 from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError, ValidationError
 from bannedWordServer import db
-from bannedWordServer.models.server import Server
-from bannedWordServer.models.ban import Ban
+from bannedWordServer.models import Ban, BanRecord, Server
 from bannedWordServer.routes.serverroute import ServerRoute
 
 Session = sessionmaker()
@@ -138,8 +137,10 @@ class TestServerRoutePartialUpdate(TestCase):
 
 		self.serverid = "1234"
 		default_ban = Ban(server_id=int(self.serverid))
+		default_record = BanRecord(server_banned_word=default_ban)
 		new_server = Server(server_id=int(self.serverid), banned_words=[default_ban])
 		self.session.add(new_server)
+		self.session.add(default_record)
 
 	def test_serverroute_partial_update__update_awake(self):
 		update_params = {'awake': False}

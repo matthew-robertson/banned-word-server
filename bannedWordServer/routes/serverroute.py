@@ -2,8 +2,7 @@ from datetime import datetime, timedelta
 
 from bannedWordServer.auth import authenticateBotOnly
 from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError, ValidationError
-from bannedWordServer.models.server import Server
-from bannedWordServer.models.ban import Ban
+from bannedWordServer.models import Ban, BanRecord, Server
 from bannedWordServer.routes.resource import Resource
 
 class ServerRoute(Resource):
@@ -37,8 +36,11 @@ class ServerRoute(Resource):
 			raise DuplicateResourceError
 
 		default_ban = Ban(server_id=serverid)
+		default_record = BanRecord(server_banned_word=default_ban)
 		new_server = Server(server_id=serverid, banned_words=[default_ban])
 		session.add(new_server)
+		session.add(default_ban)
+		session.add(default_record)
 		return self.get_one(session, authToken, serverid)
 
 	def partial_update(self, session, authToken, serverid: str, modified_params: dict) -> dict:

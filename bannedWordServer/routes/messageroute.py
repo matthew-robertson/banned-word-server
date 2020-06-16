@@ -1,7 +1,9 @@
 import re
+from math import floor
+from datetime import datetime
 
 from bannedWordServer.auth import authenticateBotOnly
-from bannedWordServer.models.ban import Ban
+from bannedWordServer.models import Ban, BanRecord
 from bannedWordServer.routes.resource import Resource
 from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, ValidationError, AuthenticationError
 
@@ -23,10 +25,17 @@ class MessageRoute(Resource):
 			raise InvalidTypeError
 
 		ban_to_modify = session.query(Ban).filter_by(rowid=banid).first()
-		if not ban_to_modify: raise NotFoundError
+		record_to_modify = session.query(BanRecord).filter_by(ban_id=banid).first()
+		if not ban_to_modify or not record_to_modify: raise NotFoundError
 
 		if not isinstance(requestJson['sent_time'], str): raise InvalidTypeError
 		if not self.pattern.match(requestJson['sent_time']): raise ValidationError
+
+		diff_in_seconds = (
+			datetime.strptime(requestJson['sent_time'], "%Y-%m-%d %H:%M:%S") - 
+			datetime.strptime(ban_to_modify.infracted_at, "%Y-%m-%d %H:%M:%S")).total_seconds()
+		if diff_in_seconds > record_to_modify.record_seconds:
+			record_to_modify.record_seconds = diff_in_seconds
 
 		ban_to_modify.infracted_at = requestJson['sent_time']
 		if ('called_out' in requestJson.keys()):

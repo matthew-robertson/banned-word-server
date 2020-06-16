@@ -10,6 +10,7 @@ class Ban(db.Model):
 	server_id = db.Column(db.Integer, db.ForeignKey('server.server_id'), nullable=False)
 	infracted_at = db.Column(db.String, nullable=False, default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 	calledout_at = db.Column(db.String, nullable=False, default=(datetime.now() - timedelta(weeks=52)).strftime("%Y-%m-%d %H:%M:%S"))
+	record = db.relationship("BanRecord", uselist=False, cascade="delete", backref="server_banned_word")
 
 	def to_dict(self):
 		entries = {}
@@ -18,5 +19,6 @@ class Ban(db.Model):
 		entries['banned_word'] = self.banned_word
 		entries['infracted_at'] = self.infracted_at
 		entries['calledout_at'] = self.calledout_at
+		entries['record'] = self.record.to_dict()
 
 		return entries

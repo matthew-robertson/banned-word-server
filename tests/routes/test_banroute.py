@@ -158,7 +158,7 @@ class TestBanRoutePostOne(TestCase):
 		self.session = Session(bind=self.connection)
 		self.serverid = 1234
 		new_ban = Ban(server_id=self.serverid, banned_word="asdf", infracted_at=(datetime.now()-timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"))
-		self.record = BanRecord(server_banned_word=new_ban, record_seconds=60)
+		self.record = BanRecord(server_banned_word=new_ban, record_seconds=60, infraction_count=420)
 		new_server = Server(server_id=self.serverid, banned_words=[new_ban])
 		self.session.add(new_server)
 		self.session.add(new_ban)
@@ -188,6 +188,7 @@ class TestBanRoutePostOne(TestCase):
 
 		BanRoute().post_one(self.session, "Bot " + BOT_TOKEN, self.serverid, banid, new_word)
 		self.assertEqual(0, self.record.record_seconds)
+		self.assertEqual(0, self.record.infraction_count)
 
 	def test_banroute_post_one__ban_not_found(self):
 		self.assertRaises(NotFoundError, BanRoute().post_one, self.session, "Bot " + BOT_TOKEN, self.serverid, 5, "asdf")

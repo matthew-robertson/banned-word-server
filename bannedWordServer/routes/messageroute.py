@@ -37,6 +37,8 @@ class MessageRoute(Resource):
 		if diff_in_seconds > record_to_modify.record_seconds:
 			record_to_modify.record_seconds = diff_in_seconds
 
+		record_to_modify.infraction_count += 1
+
 		ban_to_modify.infracted_at = requestJson['sent_time']
 		if ('called_out' in requestJson.keys()):
 			ban_to_modify.calledout_at = requestJson['sent_time']

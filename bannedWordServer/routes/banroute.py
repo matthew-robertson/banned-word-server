@@ -78,7 +78,8 @@ class BanRoute(Resource):
 		ban.banned_word = banned_word
 		ban.infracted_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 		ban.calledout_at = (datetime.now() - timedelta(weeks=52)).strftime("%Y-%m-%d %H:%M:%S")
-		record_to_modify.record_seconds = 0
+		record_to_modify.reinitialize()
+
 		return self.get_one(session, authToken, banid)
 
 	def delete(self, session, authToken, serverid: str, banid: str):

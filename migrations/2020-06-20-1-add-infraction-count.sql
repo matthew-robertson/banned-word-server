@@ -1,0 +1,1 @@
+ALTER TABLE 'ban_record' ADD COLUMN infraction_count DEFAULT 0;

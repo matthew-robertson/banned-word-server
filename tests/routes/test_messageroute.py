@@ -49,6 +49,9 @@ class TestBanRoutePostOne(TestCase):
 		result = MessageRoute().post(self.session, "Bot " + BOT_TOKEN, request)
 		self.assertEqual(current_time, self.session.query(Ban).filter_by(rowid=1).first().infracted_at)
 		self.assertNotEqual(current_time, self.session.query(Ban).filter_by(rowid=1).first().calledout_at)
+		self.assertEqual(
+			1,
+			self.session.query(BanRecord).filter_by(rowid=1).first().infraction_count)
 
 	def test_messageroute_post__record_setting(self):
 		current_time = self.current_time.strftime("%Y-%m-%d %H:%M:%S")

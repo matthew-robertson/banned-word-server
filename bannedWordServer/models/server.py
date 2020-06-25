@@ -9,6 +9,7 @@ class Server(db.Model):
 	infracted_at = db.Column(db.String, nullable=False, default="-1")
 	calledout_at = db.Column(db.String, nullable=False, default="-1")
 	banned_words = db.relationship("Ban")
+	plan_mapping = db.relationship("ServerPlan", uselist=False, cascade="delete", backref="server")
 
 	def to_dict(self):
 		entries = {}
@@ -16,5 +17,9 @@ class Server(db.Model):
 		entries['timeout_duration_seconds'] = self.timeout_duration_seconds
 		entries['banned_words'] = [word.to_dict() for word in self.banned_words]
 		entries['awake'] = self.awake
+		entries['plan'] = self.plan_mapping.plan.to_dict()
 
 		return entries
+
+	def get_plan(self):
+		return self.plan_mapping.plan

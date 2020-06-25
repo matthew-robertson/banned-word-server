@@ -1,7 +1,7 @@
 from confusables import is_confusable
 from datetime import datetime, timedelta
 
-from bannedWordServer.constants.errors import ValidationError, DuplicateResourceError, NotFoundError, InvalidTypeError, AuthenticationError
+from bannedWordServer.constants.errors import PlanError, ValidationError, DuplicateResourceError, NotFoundError, InvalidTypeError, AuthenticationError
 from bannedWordServer.models import Ban, Server, BanRecord
 from bannedWordServer.routes.resource import Resource
 from bannedWordServer.auth import authenticateBotOnly
@@ -38,10 +38,12 @@ class BanRoute(Resource):
 		except:
 			raise InvalidTypeError
 		if not isinstance(banned_word, str): raise InvalidTypeError
+
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
-		if len(server_to_modify.banned_words) == 3:
-			raise ValidationError
+
+		if len(server_to_modify.banned_words) >= server_to_modify.get_plan().bannings_allowed:
+			raise PlanError
 
 		already_exists = any([is_confusable(banned_word, ban.banned_word) for ban in server_to_modify.banned_words])
 		if already_exists: raise DuplicateResourceError
@@ -54,7 +56,6 @@ class BanRoute(Resource):
 
 		session.add(new_ban)
 		session.add(new_record)
-
 		return session.query(Ban).filter_by(server_id=serverid, banned_word=banned_word).first().to_dict()
 
 	def post_one(self, session, authToken, serverid: str, banid: str, banned_word: str) -> dict:
@@ -67,6 +68,9 @@ class BanRoute(Resource):
 		if not isinstance(banned_word, str): raise InvalidTypeError
 		server_to_modify = session.query(Server).filter_by(server_id=serverid).first()
 		if not server_to_modify: raise NotFoundError
+
+		if len(server_to_modify.banned_words) > server_to_modify.get_plan().bannings_allowed:
+			raise PlanError
 
 		ban = session.query(Ban).filter_by(server_id=serverid, rowid=banid).first()
 		record_to_modify = session.query(BanRecord).filter_by(ban_id=banid).first()

@@ -5,9 +5,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from unittest import TestCase
 
-from bannedWordServer.constants.errors import ValidationError, NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError
+from bannedWordServer.constants.errors import PlanError, ValidationError, NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError
 from bannedWordServer import db
 from bannedWordServer.models import Ban, BanRecord, Server
+from tests.utils.test_utils import create_server
 from bannedWordServer.routes.banroute import BanRoute
 
 Session = sessionmaker()
@@ -23,8 +24,7 @@ class TestBanRouteGetCollection(TestCase):
 		self.session = Session(bind=self.connection)
 
 		self.serverid = "1234"
-		new_server = Server(server_id=int(self.serverid))
-		self.session.add(new_server)
+		create_server(self.session, server_id=self.serverid)
 
 	def test_banroute_get_collection__bad_serverid(self):
 		self.assertRaises(InvalidTypeError, BanRoute().get_collection, self.session, self.authtoken, "asdf")
@@ -109,8 +109,8 @@ class TestBanRoutePostCollection(TestCase):
 		self.trans = self.connection.begin()
 		self.session = Session(bind=self.connection)
 		self.serverid = "1234"
-		new_server = Server(server_id=int(self.serverid))
-		self.session.add(new_server)
+
+		create_server(session=self.session, server_id=self.serverid, bannings_allowed=4)
 
 	def test_banroute_post_collection__good_request(self):
 		banned_word = "asdf"
@@ -124,7 +124,7 @@ class TestBanRoutePostCollection(TestCase):
 		BanRoute().post_collection(self.session, self.authtoken, self.serverid, "asdf")
 		BanRoute().post_collection(self.session, self.authtoken, self.serverid, "sdfa")
 		BanRoute().post_collection(self.session, self.authtoken, self.serverid, "dfas")
-		self.assertRaises(ValidationError, BanRoute().post_collection, self.session, self.authtoken, self.serverid, "fasd")
+		self.assertRaises(PlanError, BanRoute().post_collection, self.session, self.authtoken, self.serverid, "fasd")
 
 	def test_banroute_post_collection__server_not_found(self):
 		self.assertRaises(NotFoundError, BanRoute().post_collection, self.session, self.authtoken, "4321", "asdf")
@@ -157,12 +157,50 @@ class TestBanRoutePostOne(TestCase):
 		self.trans = self.connection.begin()
 		self.session = Session(bind=self.connection)
 		self.serverid = 1234
-		new_ban = Ban(server_id=self.serverid, banned_word="asdf", infracted_at=(datetime.now()-timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"))
-		self.record = BanRecord(server_banned_word=new_ban, record_seconds=60, infraction_count=420)
-		new_server = Server(server_id=self.serverid, banned_words=[new_ban])
-		self.session.add(new_server)
+		new_ban = Ban(
+			server_id=self.serverid,
+			banned_word="asdf",
+			infracted_at=(datetime.now()-timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"))
+		self.record = BanRecord(
+			server_banned_word=new_ban,
+			record_seconds=60,
+			infraction_count=420)
 		self.session.add(new_ban)
 		self.session.add(self.record)
+
+		self.overloaded_server_id = 11111
+		ban1 = Ban(
+			server_id=self.overloaded_server_id,
+			banned_word="asdf",
+			infracted_at=(datetime.now()-timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"))
+		record1 = BanRecord(
+			server_banned_word=ban1,
+			record_seconds=60,
+			infraction_count=420)
+		ban2 = Ban(
+			server_id=self.overloaded_server_id,
+			banned_word="fdsa",
+			infracted_at=(datetime.now()-timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"))
+		record2 = BanRecord(
+			server_banned_word=ban2,
+			record_seconds=60,
+			infraction_count=420)
+		self.session.add(ban1)
+		self.session.add(record1)
+		self.session.add(ban2)
+		self.session.add(record2)
+		
+		create_server(
+			self.session,
+			banned_words=[ban1, ban2],
+			server_id=self.overloaded_server_id,
+			bannings_allowed=1)
+		
+		create_server(
+			self.session,
+			banned_words=[new_ban],
+			server_id=self.serverid,
+			bannings_allowed=1)
 
 	def test_banroute_post_one__good_request(self):
 		new_word = "qwerty"
@@ -177,6 +215,16 @@ class TestBanRoutePostOne(TestCase):
 		self.assertEqual(True,\
 			datetime.strptime(ban.infracted_at, "%Y-%m-%d %H:%M:%S") >\
 			datetime.strptime(old_time, "%Y-%m-%d %H:%M:%S"))
+
+	def test_banroute_post_one__too_many_words(self):
+		self.assertRaises(
+			PlanError,
+			BanRoute().post_one,
+			self.session,
+			"Bot " + BOT_TOKEN,
+			self.overloaded_server_id,
+			1,
+			"qwert")
 
 	def test_banroute_post_one__resets_record(self):
 		new_word = "qwerty"
@@ -194,8 +242,7 @@ class TestBanRoutePostOne(TestCase):
 		self.assertRaises(NotFoundError, BanRoute().post_one, self.session, "Bot " + BOT_TOKEN, self.serverid, 5, "asdf")
 
 	def test_banroute_post_one__confusable_word(self):
-		BanRoute().post_collection(self.session, "Bot " + BOT_TOKEN, self.serverid, 'lest')
-		self.assertRaises(DuplicateResourceError, BanRoute().post_one, self.session, "Bot " + BOT_TOKEN, self.serverid, 1, "iest")
+		self.assertRaises(DuplicateResourceError, BanRoute().post_one, self.session, "Bot " + BOT_TOKEN, self.serverid, 1, "AsDf")
 
 	def test_banroute_post_one__unauthorized(self):
 		self.assertRaises(AuthenticationError, BanRoute().post_one, self.session, "Bot " + "asdffdsa", self.serverid, 5, "asdf")
@@ -221,15 +268,13 @@ class TestBanRouteDelete(TestCase):
 		new_record2 = BanRecord(server_banned_word=new_ban2)
 		new_ban3 = Ban(server_id=self.serverid, banned_word="test", infracted_at=(datetime.now()-timedelta(days=6)).strftime("%Y-%m-%d %H:%M:%S"))
 		new_record3 = BanRecord(server_banned_word=new_ban3)
-		new_server = Server(server_id=self.serverid, banned_words=[new_ban1, new_ban2, new_ban3])
-		self.session.add(new_server)
 		self.session.add(new_ban1)
 		self.session.add(new_ban2)
 		self.session.add(new_ban3)
 		self.session.add(new_record1)
 		self.session.add(new_record2)
 		self.session.add(new_record3)
-		
+		create_server(self.session, server_id=self.serverid, banned_words=[new_ban1, new_ban2, new_ban3])		
 
 	def test_banroute_delete__good_request(self):
 		banid = 1

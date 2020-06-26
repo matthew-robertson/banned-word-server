@@ -6,7 +6,8 @@ from unittest import TestCase
 
 from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError, ValidationError
 from bannedWordServer import db
-from bannedWordServer.models import Ban, BanRecord, Server
+from bannedWordServer.models import Ban, BanRecord, Server, Plan
+from tests.utils.test_utils import create_server
 from bannedWordServer.routes.serverroute import ServerRoute
 
 Session = sessionmaker()
@@ -25,26 +26,20 @@ class TestServerRouteGetCollection(TestCase):
 		self.assertEqual(result, [])
 
 	def test_serverroute_get_collection__one_element(self):
-		server = Server(server_id=1234)
-		self.session.add(server)
+		create_server(self.session, server_id=1234)
 		result = ServerRoute().get_collection(self.session, "Bot " + BOT_TOKEN)
 		self.assertEqual(len(result), 1)
-		self.assertEqual(result[0]['server_id'], server.server_id)		
+		self.assertEqual(result[0]['server_id'], 1234)		
 
 	def test_serverroute_get_collection__multiple_elements(self):
-		server1 = Server(server_id=1234)
-		server2 = Server(server_id=4321)
-		self.session.add(server1)
-		self.session.add(server2)
+		create_server(self.session, server_id=1234)
+		create_server(self.session, server_id=4321)
 		result = ServerRoute().get_collection(self.session, "Bot " + BOT_TOKEN)
 		self.assertEqual(len(result), 2)
 
 	def test_serverroute_get_collection__unauthorized(self):
-		serverid=1234
-		server1 = Server(server_id=serverid)
-		server2 = Server(server_id=4321)
-		self.session.add(server1)
-		self.session.add(server2)
+		create_server(self.session, server_id=1234)
+		create_server(self.session, server_id=4321)
 		self.assertRaises(AuthenticationError, ServerRoute().get_collection, self.session, "Bot " + "asdffdsa")
 
 	def tearDown(self):
@@ -58,35 +53,40 @@ class TestServerRouteGetOne(TestCase):
 		self.connection = engine.connect()
 		self.trans = self.connection.begin()
 		self.session = Session(bind=self.connection)
+		server1, _ = create_server(self.session, server_id=1234)
+		server2, _ = create_server(self.session, server_id=4321)
+		self.expected_output = [server1.to_dict(), server2.to_dict()]
 
 	def test_serverroute_get_one__good_request(self):
-		serverid=1234
-		server1 = Server(server_id=serverid)
-		server2 = Server(server_id=4321)
-		self.session.add(server1)
-		self.session.add(server2)
-		result = ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, str(serverid))
-		self.assertEqual(result, server1.to_dict())
+		result = ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, "1234")
+		self.assertEqual(result, self.expected_output[0])
 
 	def test_serverroute_get_one__unauthorized(self):
-		serverid=1234
-		server1 = Server(server_id=serverid)
-		server2 = Server(server_id=4321)
-		self.session.add(server1)
-		self.session.add(server2)
-		self.assertRaises(AuthenticationError, ServerRoute().get_one, self.session, "Bot " + "asdffdsa", str(serverid))
+		self.assertRaises(
+			AuthenticationError,
+			ServerRoute().get_one,
+			self.session,
+			"Bot " + "asdffdsa",
+			"1234"
+		)
 
 	def test_serverroute_get_one__not_found(self):
-		serverid=1234
-		server = Server(server_id=4321)
-		self.session.add(server)
-		self.assertRaises(NotFoundError, ServerRoute().get_one, self.session, "Bot " + BOT_TOKEN, str(serverid))
+		self.assertRaises(
+			NotFoundError,
+			ServerRoute().get_one,
+			self.session,
+			"Bot " + BOT_TOKEN,
+			"1111"
+		)
 
 	def test_serverroute_get_one__bad_input(self):
-		serverid=1234
-		server = Server(server_id=serverid)
-		self.session.add(server)
-		self.assertRaises(InvalidTypeError, ServerRoute().get_one, self.session, "Bot " + BOT_TOKEN, "asdf")
+		self.assertRaises(
+			InvalidTypeError,
+			ServerRoute().get_one,
+			self.session,
+			"Bot " + BOT_TOKEN,
+			"asdf"
+		)
 
 	def tearDown(self):
 		self.session.close()
@@ -99,6 +99,8 @@ class TestServerRoutePostCollection(TestCase):
 		self.connection = engine.connect()
 		self.trans = self.connection.begin()
 		self.session = Session(bind=self.connection)
+		plan = Plan(plan_id=1, name="Test Plan", bannings_allowed=3)
+		self.session.add(plan)
 
 	def test_serverroute_post_collection__good_request(self):
 		serverid=1234
@@ -136,11 +138,7 @@ class TestServerRoutePartialUpdate(TestCase):
 		self.session = Session(bind=self.connection)
 
 		self.serverid = "1234"
-		default_ban = Ban(server_id=int(self.serverid))
-		default_record = BanRecord(server_banned_word=default_ban)
-		new_server = Server(server_id=int(self.serverid), banned_words=[default_ban])
-		self.session.add(new_server)
-		self.session.add(default_record)
+		create_server(self.session, server_id=self.serverid)
 
 	def test_serverroute_partial_update__update_awake(self):
 		update_params = {'awake': False}

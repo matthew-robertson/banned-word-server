@@ -4,6 +4,8 @@ class ValidationError(Exception):
 class AuthenticationError(Exception):
 	status_code = 401
 
+class PlanError(Exception):
+	status_code = 402
 
 class NotFoundError(ValidationError):
 	status_code = 404

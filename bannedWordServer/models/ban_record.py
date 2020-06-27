@@ -1,33 +1,41 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from bannedWordServer import db
 
+
 def current_time():
-	return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 class BanRecord(db.Model):
-	__tablename__ = 'ban_record'
+    __tablename__ = "ban_record"
 
-	rowid = db.Column(db.Integer, primary_key=True)
-	ban_id = db.Column(db.Integer, db.ForeignKey('server_banned_word.rowid', onupdate="cascade"), nullable=False)
-	record_seconds = db.Column(db.Integer, nullable=False, default=0)
-	infraction_count = db.Column(db.Integer, nullable=False, default=0)
-	created_at = db.Column(db.String, 
-		nullable=False,
-		default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-	updated_at = db.Column(db.String,
-		nullable=False,
-		default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-		onupdate=current_time)
+    rowid = db.Column(db.Integer, primary_key=True)
+    ban_id = db.Column(
+        db.Integer,
+        db.ForeignKey("server_banned_word.rowid", onupdate="cascade"),
+        nullable=False,
+    )
+    record_seconds = db.Column(db.Integer, nullable=False, default=0)
+    infraction_count = db.Column(db.Integer, nullable=False, default=0)
+    created_at = db.Column(
+        db.String, nullable=False, default=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    )
+    updated_at = db.Column(
+        db.String,
+        nullable=False,
+        default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        onupdate=current_time,
+    )
 
-	def to_dict(self):
-		entry = {}
-		entry['record_seconds'] = self.record_seconds
-		entry['infraction_count'] = self.infraction_count
-		entry['updated_at'] = self.updated_at
+    def to_dict(self):
+        entry = {}
+        entry["record_seconds"] = self.record_seconds
+        entry["infraction_count"] = self.infraction_count
+        entry["updated_at"] = self.updated_at
 
-		return entry
+        return entry
 
-	def reinitialize(self):
-		self.record_seconds = 0
-		self.infraction_count = 0
+    def reinitialize(self):
+        self.record_seconds = 0
+        self.infraction_count = 0

@@ -3,9 +3,7 @@ import os
 
 from bannedWordServer.router import app
 
-if 'DEVELOPMENT_MODE' in os.environ:
-	app.run(host='0.0.0.0')
+if "DEVELOPMENT_MODE" in os.environ:
+    app.run(host="0.0.0.0")
 else:
-	serve(app, threads=int(os.environ['WAITRESS_THREAD_COUNT']))
-
-
+    serve(app, threads=int(os.environ["WAITRESS_THREAD_COUNT"]))

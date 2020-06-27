@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from unittest import TestCase
+from unittest.mock import patch
 
 from bannedWordServer.constants.errors import PlanError, ValidationError, NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError
 from bannedWordServer import db
@@ -80,7 +81,9 @@ class TestBanRouteGetCollection(TestCase):
 	def test_banroute_get_one__not_found(self):
 		self.assertRaises(NotFoundError, BanRoute().get_one, self.session, self.authtoken, "0")
 
-	def test_banroute_get_one__unauthorized(self):
+	@patch('bannedWordServer.routes.banroute.authenticateBotOrServerAdmin')
+	def test_banroute_get_one__unauthorized(self, auth_mock):
+		auth_mock.return_value = False
 		self.assertRaises(AuthenticationError, BanRoute().get_one, self.session, "Bot " + "asdffdsa", "0")
 
 	def test_banroute_get_one__good_request(self):
@@ -129,7 +132,9 @@ class TestBanRoutePostCollection(TestCase):
 	def test_banroute_post_collection__server_not_found(self):
 		self.assertRaises(NotFoundError, BanRoute().post_collection, self.session, self.authtoken, "4321", "asdf")
 
-	def test_banroute_post_collection__unauthorized(self):
+	@patch('bannedWordServer.routes.banroute.authenticateBotOrServerAdmin')
+	def test_banroute_post_collection__unauthorized(self, auth_mock):
+		auth_mock.return_value = False
 		self.assertRaises(AuthenticationError, BanRoute().post_collection, self.session, "Bot " + "asdffdsa", self.serverid, "asdf")
 
 	def test_banroute_post_collection__duplicate_word(self):
@@ -244,7 +249,9 @@ class TestBanRoutePostOne(TestCase):
 	def test_banroute_post_one__confusable_word(self):
 		self.assertRaises(DuplicateResourceError, BanRoute().post_one, self.session, "Bot " + BOT_TOKEN, self.serverid, 1, "AsDf")
 
-	def test_banroute_post_one__unauthorized(self):
+	@patch('bannedWordServer.routes.banroute.authenticateBotOrServerAdmin')
+	def test_banroute_post_one__unauthorized(self, auth_mock):
+		auth_mock.return_value = False
 		self.assertRaises(AuthenticationError, BanRoute().post_one, self.session, "Bot " + "asdffdsa", self.serverid, 5, "asdf")
 
 	def test_banroute_post_one__word_invalid(self):
@@ -289,7 +296,9 @@ class TestBanRouteDelete(TestCase):
 	def test_banroute_delete__ban_not_found(self):
 		self.assertRaises(NotFoundError, BanRoute().delete, self.session, "Bot " + BOT_TOKEN, self.serverid, 5)
 
-	def test_banroute_delete__unauthorized(self):
+	@patch('bannedWordServer.routes.banroute.authenticateBotOrServerAdmin')
+	def test_banroute_delete__unauthorized(self, auth_mock):
+		auth_mock.return_value = False
 		self.assertRaises(AuthenticationError, BanRoute().delete, self.session, "Bot " + "asdffdsa", self.serverid, 1)
 
 	def test_banroute_delete__twice(self):

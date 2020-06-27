@@ -3,6 +3,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from unittest import TestCase
+from unittest.mock import patch
 
 from bannedWordServer.constants.errors import NotFoundError, InvalidTypeError, DuplicateResourceError, AuthenticationError, ValidationError
 from bannedWordServer import db
@@ -37,7 +38,9 @@ class TestServerRouteGetCollection(TestCase):
 		result = ServerRoute().get_collection(self.session, "Bot " + BOT_TOKEN)
 		self.assertEqual(len(result), 2)
 
-	def test_serverroute_get_collection__unauthorized(self):
+	@patch('bannedWordServer.routes.serverroute.authenticateBotOrServerAdmin')
+	def test_serverroute_get_collection__unauthorized(self, auth_mock):
+		auth_mock.return_value = False
 		create_server(self.session, server_id=1234)
 		create_server(self.session, server_id=4321)
 		self.assertRaises(AuthenticationError, ServerRoute().get_collection, self.session, "Bot " + "asdffdsa")
@@ -61,7 +64,9 @@ class TestServerRouteGetOne(TestCase):
 		result = ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, "1234")
 		self.assertEqual(result, self.expected_output[0])
 
-	def test_serverroute_get_one__unauthorized(self):
+	@patch('bannedWordServer.routes.serverroute.authenticateBotOrServerAdmin')
+	def test_serverroute_get_one__unauthorized(self, auth_mock):
+		auth_mock.return_value = False
 		self.assertRaises(
 			AuthenticationError,
 			ServerRoute().get_one,
@@ -113,7 +118,9 @@ class TestServerRoutePostCollection(TestCase):
 		self.assertEqual(result, ServerRoute().get_one(self.session, "Bot " + BOT_TOKEN, str(serverid)))
 		self.assertRaises(DuplicateResourceError, ServerRoute().post_collection, self.session, "Bot " + BOT_TOKEN, str(serverid))
 	
-	def test_serverroute_post_collection__duplicate_request(self):
+	@patch('bannedWordServer.routes.serverroute.authenticateBotOrServerAdmin')
+	def test_serverroute_post_collection__unauthorized_request(self, auth_mock):
+		auth_mock.return_value = False
 		serverid=1234
 		self.assertRaises(AuthenticationError, ServerRoute().post_collection, self.session, "Bot " + "asdffdsa", str(serverid))
 
@@ -185,9 +192,12 @@ class TestServerRoutePartialUpdate(TestCase):
 		update_params = {'awake': False}
 		self.assertRaises(InvalidTypeError, ServerRoute().partial_update, self.session, "Bot " + BOT_TOKEN, "asdf", update_params)	
 
-	def test_serverroute_partial_update__unauthorized(self):
+	@patch('bannedWordServer.routes.serverroute.authenticateBotOrServerAdmin')
+	def test_serverroute_partial_update__unauthorized(self, auth_mock):
+		auth_mock.return_value = False
+
 		update_params = {'awake': False}
-		self.assertRaises(AuthenticationError, ServerRoute().partial_update, self.session, "", "asdf", update_params)	
+		self.assertRaises(AuthenticationError, ServerRoute().partial_update, self.session, "", "1", update_params)	
 
 	def test_serverroute_partial_update__nonexistant_server(self):
 		update_params = {'awake': False}

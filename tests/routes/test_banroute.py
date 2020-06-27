@@ -351,9 +351,7 @@ class TestBanRoutePostOne(TestCase):
         new_word = "qwerty"
         banid = 1
 
-        ban = self.session.query(Ban).filter_by(rowid=banid).first()
         self.assertNotEqual(0, self.record.record_seconds)
-
         BanRoute().post_one(
             self.session, "Bot " + BOT_TOKEN, self.serverid, banid, new_word
         )

@@ -4,4 +4,4 @@ python:
 script:
 - python3 -m unittest discover
 env:
-- BOT_TOKEN=garbageToken SECRET_KEY="" DB_LOCATION="garbo"
+- BOT_TOKEN=garbageToken SECRET_KEY="" DB_LOCATION="garbo" DISCORD_BASE_URL="nothanks"

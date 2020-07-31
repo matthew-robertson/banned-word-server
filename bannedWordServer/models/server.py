@@ -6,6 +6,7 @@ class Server(db.Model):
 
     server_id = db.Column(db.Integer, primary_key=True)
     awake = db.Column(db.Boolean, default=True)
+    prefix = db.Column(db.String, nullable=False, default="!vt")
     timeout_duration_seconds = db.Column(db.Integer, nullable=False, default=1800)
     infracted_at = db.Column(db.String, nullable=False, default="-1")
     calledout_at = db.Column(db.String, nullable=False, default="-1")
@@ -21,6 +22,7 @@ class Server(db.Model):
         entries["banned_words"] = [word.to_dict() for word in self.banned_words]
         entries["awake"] = self.awake
         entries["plan"] = self.plan_mapping.plan.to_dict()
+        entries["prefix"] = self.prefix
 
         return entries
 

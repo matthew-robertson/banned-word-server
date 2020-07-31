@@ -82,6 +82,13 @@ class ServerRoute(Resource):
                 raise ValidationError
             server_to_modify.timeout_duration_seconds = timeout_duration_seconds
 
+        if "prefix" in modified_params.keys():
+            prefix: str = modified_params["prefix"]
+            if not isinstance(prefix, str):
+                raise InvalidTypeError
+            if len(prefix) > 11:
+                raise ValidationError
+            server_to_modify.prefix = prefix
         return self.get_one(session, authToken, serverid)
 
     def delete(self, session, serverid):

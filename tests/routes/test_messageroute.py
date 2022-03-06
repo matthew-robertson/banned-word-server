@@ -96,7 +96,7 @@ class TestBanRoutePostOne(TestCase):
         self.assertEqual(
             1, self.session.query(BanRecord).filter_by(rowid=1).first().infraction_count
         )
-    
+
     def test_messageroute_post__new_author(self):
         request = {
             "ban_id": 1,
@@ -110,7 +110,11 @@ class TestBanRoutePostOne(TestCase):
         )
         self.assertEqual(
             1,
-            self.session.query(AuthorInfraction).filter_by(user_id=1, ban_id=1).first().infraction_count
+            self.session
+                .query(AuthorInfraction)
+                .filter_by(user_id=1, ban_id=1)
+                .first()
+                .infraction_count
         )
 
     def test_messageroute_post__existing_author_new_infraction(self):
@@ -124,11 +128,19 @@ class TestBanRoutePostOne(TestCase):
         MessageRoute().post(self.session, "Bot " + BOT_TOKEN, request)
         self.assertEqual(
             10,
-            self.session.query(Author).filter_by(user_id=1).first().infraction_count
+            self.session
+                .query(Author)
+                .filter_by(user_id=1)
+                .first()
+                .infraction_count
         )
         self.assertEqual(
             1,
-            self.session.query(AuthorInfraction).filter_by(user_id=1, ban_id=1).first().infraction_count
+            self.session
+                .query(AuthorInfraction)
+                .filter_by(user_id=1, ban_id=1)
+                .first()
+                .infraction_count
         )
 
     def test_messageroute_post__existing_author_and_infraction(self):
@@ -145,7 +157,11 @@ class TestBanRoutePostOne(TestCase):
         MessageRoute().post(self.session, "Bot " + BOT_TOKEN, request)
         self.assertEqual(
             3,
-            self.session.query(AuthorInfraction).filter_by(user_id=1, ban_id=1).first().infraction_count
+            self.session
+                .query(AuthorInfraction)
+                .filter_by(user_id=1, ban_id=1)
+                .first()
+                .infraction_count
         )
 
     def test_messageroute_post__record_setting(self):
@@ -157,7 +173,11 @@ class TestBanRoutePostOne(TestCase):
         MessageRoute().post(self.session, "Bot " + BOT_TOKEN, request)
         self.assertEqual(
             timedelta(days=6).total_seconds(),
-            self.session.query(BanRecord).filter_by(rowid=1).first().record_seconds,
+            self.session
+                .query(BanRecord)
+                .filter_by(rowid=1)
+                .first()
+                .record_seconds
         )
 
     def test_messageroute_post__non_record_setting(self):
@@ -236,7 +256,13 @@ class TestBanRoutePostOne(TestCase):
             request,
         )
 
-        request = {"ban_id": 1, "sent_time": self.current_time_string, "author_id": "asdf", "called_out": True}
+        request = {
+            "ban_id": 1,
+            "sent_time": self.current_time_string,
+            "author_id": "asdf",
+            "called_out": True
+        }
+
         self.assertRaises(
             ValidationError,
             MessageRoute().post,
@@ -244,6 +270,7 @@ class TestBanRoutePostOne(TestCase):
             "Bot " + BOT_TOKEN,
             request,
         )
+
     def tearDown(self):
         self.session.close()
         self.trans.rollback()

@@ -6,4 +6,12 @@ from .ban_record import BanRecord
 from .plan import Plan
 from .server_plan import ServerPlan
 
-__all__ = ["Author", "Ban", "BanRecord", "Plan", "Server", "ServerPlan"]
+__all__ = [
+    "Author",
+    "AuthorInfraction",
+    "Ban",
+    "BanRecord",
+    "Plan",
+    "Server",
+    "ServerPlan"
+]

@@ -53,9 +53,16 @@ class MessageRoute(Resource):
         else:
             user_to_modify.infraction_count += 1
 
-        author_inf_to_modify = session.query(AuthorInfraction).filter_by(user_id=authorid, ban_id=banid).first()
+        author_inf_to_modify = session \
+            .query(AuthorInfraction) \
+            .filter_by(user_id=authorid, ban_id=banid) \
+            .first()
         if not author_inf_to_modify:
-            new_infraction = AuthorInfraction(user_id=authorid, ban_id=banid, infraction_count=1)
+            new_infraction = AuthorInfraction(
+                    user_id=authorid,
+                    ban_id=banid,
+                    infraction_count=1
+                )
             session.add(new_infraction)
         else:
             author_inf_to_modify.infraction_count += 1

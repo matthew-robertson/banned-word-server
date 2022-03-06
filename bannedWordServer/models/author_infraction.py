@@ -2,8 +2,10 @@ from datetime import datetime
 
 from bannedWordServer import db
 
+
 def current_time():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 class AuthorInfraction(db.Model):
     __tablename__ = "author_infraction"

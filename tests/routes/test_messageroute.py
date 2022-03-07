@@ -12,7 +12,7 @@ from bannedWordServer.constants.errors import (
     AuthenticationError,
 )
 from bannedWordServer import db
-from bannedWordServer.models import Ban, BanRecord, Server, Author, AuthorInfraction
+from bannedWordServer.models import Ban, BanRecord, Server
 from bannedWordServer.routes.messageroute import MessageRoute
 
 Session = sessionmaker()
@@ -49,7 +49,6 @@ class TestBanRoutePostOne(TestCase):
     def test_messageroute_post__ban_not_found(self):
         request = {
             "ban_id": 3,
-            "author_id": 1,
             "sent_time": self.current_time_string,
         }
         self.assertRaises(
@@ -63,7 +62,6 @@ class TestBanRoutePostOne(TestCase):
     def test_messageroute_post__unauthorized(self):
         request = {
             "ban_id": 3,
-            "author_id": 1,
             "sent_time": self.current_time_string,
         }
         self.assertRaises(
@@ -77,7 +75,6 @@ class TestBanRoutePostOne(TestCase):
     def test_messageroute_post__good_request(self):
         request = {
             "ban_id": 1,
-            "author_id": 1,
             "sent_time": self.current_time_string,
         }
         self.assertNotEqual(
@@ -97,93 +94,20 @@ class TestBanRoutePostOne(TestCase):
             1, self.session.query(BanRecord).filter_by(rowid=1).first().infraction_count
         )
 
-    def test_messageroute_post__new_author(self):
-        request = {
-            "ban_id": 1,
-            "author_id": 1,
-            "sent_time": self.current_time_string,
-        }
-        MessageRoute().post(self.session, "Bot " + BOT_TOKEN, request)
-        self.assertEqual(
-            1,
-            self.session.query(Author).filter_by(user_id=1).first().infraction_count
-        )
-        self.assertEqual(
-            1,
-            self.session
-                .query(AuthorInfraction)
-                .filter_by(user_id=1, ban_id=1)
-                .first()
-                .infraction_count
-        )
-
-    def test_messageroute_post__existing_author_new_infraction(self):
-        new_author = Author(user_id=1, infraction_count=9)
-        self.session.add(new_author)
-        request = {
-            "ban_id": 1,
-            "author_id": 1,
-            "sent_time": self.current_time_string,
-        }
-        MessageRoute().post(self.session, "Bot " + BOT_TOKEN, request)
-        self.assertEqual(
-            10,
-            self.session
-                .query(Author)
-                .filter_by(user_id=1)
-                .first()
-                .infraction_count
-        )
-        self.assertEqual(
-            1,
-            self.session
-                .query(AuthorInfraction)
-                .filter_by(user_id=1, ban_id=1)
-                .first()
-                .infraction_count
-        )
-
-    def test_messageroute_post__existing_author_and_infraction(self):
-        new_author = Author(user_id=1, infraction_count=9)
-        new_authinf = AuthorInfraction(user_id=1, ban_id=1, infraction_count=2)
-        self.session.add(new_author)
-        self.session.add(new_authinf)
-
-        request = {
-            "ban_id": 1,
-            "author_id": 1,
-            "sent_time": self.current_time_string,
-        }
-        MessageRoute().post(self.session, "Bot " + BOT_TOKEN, request)
-        self.assertEqual(
-            3,
-            self.session
-                .query(AuthorInfraction)
-                .filter_by(user_id=1, ban_id=1)
-                .first()
-                .infraction_count
-        )
-
     def test_messageroute_post__record_setting(self):
         request = {
             "ban_id": 1,
-            "author_id": 1,
             "sent_time": self.current_time_string,
         }
         MessageRoute().post(self.session, "Bot " + BOT_TOKEN, request)
         self.assertEqual(
             timedelta(days=6).total_seconds(),
-            self.session
-                .query(BanRecord)
-                .filter_by(rowid=1)
-                .first()
-                .record_seconds
+            self.session.query(BanRecord).filter_by(rowid=1).first().record_seconds,
         )
 
     def test_messageroute_post__non_record_setting(self):
         request = {
             "ban_id": 1,
-            "author_id": 1,
             "sent_time": self.current_time_string,
         }
         self.assertNotEqual(
@@ -200,7 +124,6 @@ class TestBanRoutePostOne(TestCase):
     def test_messageroute_post__good_request_callout(self):
         request = {
             "ban_id": 1,
-            "author_id": 1,
             "sent_time": self.current_time_string,
             "called_out": True,
         }
@@ -226,7 +149,6 @@ class TestBanRoutePostOne(TestCase):
     def test_messageroute_post__invalid_paras(self):
         request = {
             "ban_id": "asdf",
-            "author_id": 1,
             "sent_time": self.current_time_string,
             "called_out": True,
         }
@@ -238,7 +160,7 @@ class TestBanRoutePostOne(TestCase):
             request,
         )
 
-        request = {"ban_id": 1, "sent_time": 1234, "author_id": 1, "called_out": True}
+        request = {"ban_id": 1, "sent_time": 1234, "called_out": True}
         self.assertRaises(
             InvalidTypeError,
             MessageRoute().post,
@@ -247,22 +169,7 @@ class TestBanRoutePostOne(TestCase):
             request,
         )
 
-        request = {"ban_id": 1, "sent_time": "asdf", "author_id": 1, "called_out": True}
-        self.assertRaises(
-            ValidationError,
-            MessageRoute().post,
-            self.session,
-            "Bot " + BOT_TOKEN,
-            request,
-        )
-
-        request = {
-            "ban_id": 1,
-            "sent_time": self.current_time_string,
-            "author_id": "asdf",
-            "called_out": True
-        }
-
+        request = {"ban_id": 1, "sent_time": "asdf", "called_out": True}
         self.assertRaises(
             ValidationError,
             MessageRoute().post,

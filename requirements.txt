@@ -19,7 +19,7 @@ flask==1.1.1
     #   -r requirements.in
     #   flask-cors
     #   flask-sqlalchemy
-flask-cors==3.0.8
+flask-cors==3.0.9
     # via -r requirements.in
 flask-sqlalchemy==2.4.1
     # via -r requirements.in
